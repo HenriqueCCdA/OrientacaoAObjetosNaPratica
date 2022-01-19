@@ -9,25 +9,31 @@ class NotEnoughMoney(Exception):
 class AbortInvestment(Exception):
     pass
 
-class Impulsive:
+class Strategy:
+    def __str__(self):
+        return self.__class__.__name__
+
+class Impulsive(Strategy):
     @staticmethod
     def should_buy(balance, price, rent):
         return True
 
-class Demanding:
+class Demanding(Strategy):
     @staticmethod
     def should_buy(balance, price, rent):
         return rent > 50
 
-class Cautions:
+class Cautions(Strategy):
     @staticmethod
     def should_buy(balance, price, rent):
         return balance - price >= 80
 
-class Gambler:
+class Gambler(Strategy):
     @staticmethod
     def should_buy(balance, price, rent):
         return random.choice((True, False))
+
+STRATEGIES = (Impulsive(), Demanding(), Cautions(), Gambler())
 
 class Player:
 
@@ -37,7 +43,7 @@ class Player:
 
     def pay(self, amount):
         if amount > self.balance:
-            raise OutOfMoney(repr(self))
+            raise OutOfMoney(repr(self.strategy))
 
         self.balance -= amount
         return amount
@@ -53,3 +59,11 @@ class Player:
             raise AbortInvestment(f'{self!r} aborted the investment.')
 
         return self.pay(price)
+
+    def __str__(self):
+        return str(self.strategy)
+
+
+    @classmethod
+    def from_strategies(cls, balance):
+        return [cls(balance, strategy=s) for s in STRATEGIES]
